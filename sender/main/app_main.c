@@ -102,7 +102,7 @@ void app_main()
         .command_bits=0,
         .address_bits=0,
         .dummy_bits=0,
-        .clock_speed_hz= 1 *1000 *1000,
+        .clock_speed_hz= 9 *1000 *1000,
         .duty_cycle_pos= 128,        //50% duty cycle
         .mode=0,
         .spics_io_num=GPIO_CS,
