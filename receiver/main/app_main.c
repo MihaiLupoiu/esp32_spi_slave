@@ -16,24 +16,21 @@
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
 
-#include "lwip/sockets.h"
-#include "lwip/dns.h"
-#include "lwip/netdb.h"
-#include "lwip/igmp.h"
+// #include "lwip/sockets.h"
+// #include "lwip/dns.h"
+// #include "lwip/netdb.h"
+// #include "lwip/igmp.h"
 
-#include "esp_wifi.h"
-#include "esp_system.h"
-#include "esp_event.h"
-#include "esp_event_loop.h"
-#include "nvs_flash.h"
-#include "soc/rtc_cntl_reg.h"
-#include "rom/cache.h"
+// #include "esp_wifi.h"
+// #include "esp_system.h"
+// #include "esp_event.h"
+// #include "esp_event_loop.h"
+// #include "nvs_flash.h"
+// #include "soc/rtc_cntl_reg.h"
+// #include "rom/cache.h"
 #include "driver/spi_slave.h"
 #include "esp_log.h"
 #include "esp_spi_flash.h"
-
-
-
 
 /*
 SPI receiver (slave) example.
