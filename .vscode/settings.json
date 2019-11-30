@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "task.h": "c",
+        "semphr.h": "c",
+        "rtc_cntl_reg.h": "c",
+        "cache.h": "c",
+        "esp_intr_alloc.h": "c"
+    }
+}
