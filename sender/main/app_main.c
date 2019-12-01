@@ -16,18 +16,6 @@
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
 
-// #include "lwip/sockets.h"
-// #include "lwip/dns.h"
-// #include "lwip/netdb.h"
-// #include "lwip/igmp.h"
-
-// #include "esp_wifi.h"
-// #include "esp_system.h"
-// #include "esp_event.h"
-// #include "esp_event_loop.h"
-// #include "nvs_flash.h"
-// #include "soc/rtc_cntl_reg.h"
-// #include "rom/cache.h"
 #include "driver/spi_master.h"
 #include "esp_log.h"
 #include "esp_spi_flash.h"
@@ -38,22 +26,9 @@
 
 
 /*
-SPI sender (master) example.
-
-This example is supposed to work together with the SPI receiver. It uses the standard SPI pins (MISO, MOSI, SCLK, CS) to 
-transmit data over in a full-duplex fashion, that is, while the master puts data on the MOSI pin, the slave puts its own
-data on the MISO pin.
-
-This example uses one extra pin: GPIO_HANDSHAKE is used as a handshake pin. The slave makes this pin high as soon as it is
-ready to receive/send data. This code connects this line to a GPIO interrupt which gives the rdySem semaphore. The main 
-task waits for this semaphore to be given before queueing a transmission.
-*/
-
-
-/*
 Pins in use. The SPI Master can use the GPIO mux, so feel free to change these if needed.
 */
-#define GPIO_HANDSHAKE GPIO_NUM_27
+// #define GPIO_HANDSHAKE GPIO_NUM_27
 #define GPIO_MOSI GPIO_NUM_13
 #define GPIO_MISO GPIO_NUM_12
 #define GPIO_SCLK GPIO_NUM_14
@@ -61,26 +36,26 @@ Pins in use. The SPI Master can use the GPIO mux, so feel free to change these i
 
 
 //The semaphore indicating the slave is ready to receive stuff.
-static xQueueHandle rdySem;
+// static xQueueHandle rdySem;
 
-/*
-This ISR is called when the handshake line goes high.
-*/
-static void IRAM_ATTR gpio_handshake_isr_handler(void* arg)
-{
-    //Sometimes due to interference or ringing or something, we get two irqs after eachother. This is solved by
-    //looking at the time between interrupts and refusing any interrupt too close to another one.
-    static uint32_t lasthandshaketime;
-    uint32_t currtime=xthal_get_ccount();
-    uint32_t diff=currtime-lasthandshaketime;
-    if (diff<240000) return; //ignore everything <1ms after an earlier irq
-    lasthandshaketime=currtime;
+// /*
+// This ISR is called when the handshake line goes high.
+// */
+// static void IRAM_ATTR gpio_handshake_isr_handler(void* arg)
+// {
+//     //Sometimes due to interference or ringing or something, we get two irqs after eachother. This is solved by
+//     //looking at the time between interrupts and refusing any interrupt too close to another one.
+//     static uint32_t lasthandshaketime;
+//     uint32_t currtime=xthal_get_ccount();
+//     uint32_t diff=currtime-lasthandshaketime;
+//     if (diff<240000) return; //ignore everything <1ms after an earlier irq
+//     lasthandshaketime=currtime;
 
-    //Give the semaphore.
-    BaseType_t mustYield=false;
-    xSemaphoreGiveFromISR(rdySem, &mustYield);
-    if (mustYield) portYIELD_FROM_ISR();
-}
+//     //Give the semaphore.
+//     BaseType_t mustYield=false;
+//     xSemaphoreGiveFromISR(rdySem, &mustYield);
+//     if (mustYield) portYIELD_FROM_ISR();
+// }
 
 //Main application
 void app_main()
@@ -111,12 +86,12 @@ void app_main()
     };
 
     //GPIO config for the handshake line.
-    gpio_config_t io_conf={
-        .intr_type=GPIO_PIN_INTR_POSEDGE,
-        .mode=GPIO_MODE_INPUT,
-        .pull_up_en=1,
-        .pin_bit_mask=(1<<GPIO_HANDSHAKE)
-    };
+    // gpio_config_t io_conf={
+    //     .intr_type=GPIO_PIN_INTR_POSEDGE,
+    //     .mode=GPIO_MODE_INPUT,
+    //     .pull_up_en=1,
+    //     .pin_bit_mask=(1<<GPIO_HANDSHAKE)
+    // };
 
     int n=0;
     char sendbuf[128] = {0};
@@ -125,13 +100,13 @@ void app_main()
     memset(&t, 0, sizeof(t));
 
     //Create the semaphore.
-    rdySem=xSemaphoreCreateBinary();
+    // rdySem=xSemaphoreCreateBinary();
 
     //Set up handshake line interrupt.
-    gpio_config(&io_conf);
-    gpio_install_isr_service(0);
-    gpio_set_intr_type(GPIO_HANDSHAKE, GPIO_PIN_INTR_POSEDGE);
-    gpio_isr_handler_add(GPIO_HANDSHAKE, gpio_handshake_isr_handler, NULL);
+    // gpio_config(&io_conf);
+    // gpio_install_isr_service(0);
+    // gpio_set_intr_type(GPIO_HANDSHAKE, GPIO_PIN_INTR_POSEDGE);
+    // gpio_isr_handler_add(GPIO_HANDSHAKE, gpio_handshake_isr_handler, NULL);
 
     //Initialize the SPI bus and add the device we want to send stuff to.
     ret=spi_bus_initialize(HSPI_HOST, &buscfg, 1);
@@ -141,7 +116,7 @@ void app_main()
 
     //Assume the slave is ready for the first transmission: if the slave started up before us, we will not detect 
     //positive edge on the handshake line.
-    xSemaphoreGive(rdySem);
+    // xSemaphoreGive(rdySem);
 
     while(1) {
         int res = snprintf(sendbuf, sizeof(sendbuf),
@@ -153,10 +128,13 @@ void app_main()
         t.tx_buffer=sendbuf;
         t.rx_buffer=recvbuf;
         //Wait for slave to be ready for next byte before sending
-        xSemaphoreTake(rdySem, portMAX_DELAY); //Wait until slave is ready
+        // xSemaphoreTake(rdySem, portMAX_DELAY); //Wait until slave is ready
         ret=spi_device_transmit(handle, &t);
         printf("Received: %s\n", recvbuf);
         n++;
+
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+
     }
 
     //Never reached.
